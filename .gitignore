@@ -1,0 +1,14 @@
+# Dependencies & tooling (the app itself has no dependencies)
+node_modules/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Local scratch / test artefacts
+*.log
+.tmp/
+coverage/

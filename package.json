@@ -1,0 +1,37 @@
+{
+  "name": "distributed-compute-playground",
+  "version": "1.0.0",
+  "description": "A static, gamified drag-and-drop playground for learning how Apache Spark jobs are planned and executed: build a job layer by layer, read the plan it would produce, and solve exam-style case studies.",
+  "private": true,
+  "license": "Apache-2.0",
+  "author": "AnikethSD <anikethsdeshpande@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AnikethSD/distributed-computing-playground.git"
+  },
+  "homepage": "https://github.com/AnikethSD/distributed-computing-playground#readme",
+  "bugs": {
+    "url": "https://github.com/AnikethSD/distributed-computing-playground/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "check": "node --check src/data/components.js && node --check src/data/workloads.js && node --check src/data/missions.js && node --check src/core/engine.js && node --check src/ui/app.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:ui": "node tests/ui/run-ui-tests.mjs",
+    "test:all": "npm run check && npm test && npm run test:ui"
+  },
+  "keywords": [
+    "apache-spark",
+    "pyspark",
+    "distributed-computing",
+    "spark-internals",
+    "aqe",
+    "shuffle",
+    "catalyst",
+    "education",
+    "game"
+  ]
+}

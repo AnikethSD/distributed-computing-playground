@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2026 AnikethSD
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Compute Playground</title>
+  <link rel="stylesheet" href="src/styles/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <a class="back" href="../../../index.html" hidden title="Back to hub" aria-label="Back to hub">←</a>
+      <div>
+        <h1>Distributed Compute Playground</h1>
+        <p class="sub">Assemble a Spark job layer by layer — then read the plan it would produce.</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="switch" title="Highlight the matching layer while dragging">
+        <input type="checkbox" id="learnMode" checked /> <span>Guide me</span>
+      </label>
+      <span class="stat" id="statMistakes" title="Components dropped on the wrong layer">0 misses</span>
+      <div class="menu-wrap">
+        <button class="btn" id="badgeBtn" aria-expanded="false" aria-controls="badgePanel">🏅 0/12</button>
+        <div class="menu" id="badgePanel" hidden></div>
+      </div>
+      <button class="btn" id="resetBtn" title="Clear the job">Reset</button>
+      <button class="btn icon" id="themeBtn" title="Toggle light / dark theme" aria-label="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left: component palette -->
+    <aside class="col palette-col" aria-label="Components">
+      <div class="panel controls">
+        <div class="seg" id="baseSeg" role="tablist" aria-label="Engine family">
+          <button data-base="spark" role="tab">Apache Spark</button>
+          <button disabled title="Flink, Ray and Trino are on the roadmap">More soon</button>
+        </div>
+        <select id="presetSel" aria-label="Load a preset"></select>
+        <input type="search" id="searchBox" placeholder="Search components…" aria-label="Search components" />
+      </div>
+      <div id="palette" class="palette"></div>
+    </aside>
+
+    <!-- Middle: mission + layer stack -->
+    <section class="col stack-col" aria-label="Your job">
+      <div class="panel mission" id="mission"></div>
+      <div id="stack" class="stack"></div>
+    </section>
+
+    <!-- Right: analysis -->
+    <aside class="col analysis-col" id="analysis" aria-live="polite"></aside>
+  </main>
+
+  <dialog id="missionDlg" class="mission-dlg" aria-label="Mission board"></dialog>
+  <div id="pop" class="pop" role="tooltip" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="src/data/components.js"></script>
+  <script src="src/data/workloads.js"></script>
+  <script src="src/data/missions.js"></script>
+  <script src="src/core/engine.js"></script>
+  <script src="src/ui/app.js"></script>
+</body>
+</html>
