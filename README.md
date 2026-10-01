@@ -158,33 +158,33 @@ Several stories include tempting "fixes" such as raising `autoBroadcastJoinThres
 
 | # | Mission | Company | Category | Level |
 | --: | :-- | :-- | :-- | :-- |
-| 1 | 🧾 FIN-2231: the report that scanned a year | RideHub | Performance | Associate |
-| 2 | 🐢 One task, three hours | Kestrel Logistics | Joins & shuffle | Associate |
-| 3 | 💥 It only fails on Fridays | Northwind Payments | Memory | Professional |
-| 4 | 🧩 Two million files | Helio Sensors | Storage & layout | Associate |
-| 5 | 🐍 The forty-times-slower feature job | Lumen Health | PySpark | Professional |
-| 6 | 🎟️ Lost a node, lost the night | Vantage Media | Cost & elasticity | Professional |
-| 7 | 📈 Autoscaling that never scales down | Orbit Games | Cost & elasticity | Professional |
-| 8 | 🗂️ Two hundred files a day | Brightpath Analytics | Storage & layout | Associate |
-| 9 | 🗜️ The one-core, one-hour job | Meridian Telecom | Storage & layout | Associate |
-| 10 | 📊 Dashboards at nine o'clock | Cobalt Retail | Performance | Professional |
-| 11 | 🌊 The stream that ate the heap | PulsePay | Streaming | Professional |
-| 12 | 🔁 Double-counted refunds | Ledgerly | Reliability | Expert |
-| 13 | 🕳️ toPandas() on twenty gigabytes | Sable Research | Memory | Associate |
-| 14 | 🫧 The cache that made it slower | Tidewater Insurance | Memory | Professional |
-| 15 | 🎮 A GPU for the wide table | Aurora Genomics | Performance | Expert |
-| 16 | 🚀 CPU-bound at three in the morning | Granite Bank | Performance | Professional |
-| 17 | ⭐ The quarter that scanned two years | Pinecrest Retail | Joins & shuffle | Professional |
-| 18 | 🪣 Five terabytes meets five terabytes | Atlas Payments | Joins & shuffle | Expert |
-| 19 | 📋 The day the column became a string | Fernhill Logistics | Reliability | Associate |
-| 20 | 🧾 Half a report | Quayside Analytics | Reliability | Professional |
-| 21 | 🛰️ Three seconds of nothing | Harbor Freight Data | Performance | Associate |
-| 22 | ⚖️ One notebook to starve them all | Nimbus University | Reliability | Professional |
-| 23 | 🧪 Scoring 300 million riders before breakfast | Velora Rides | PySpark | Expert |
-| 24 | 🧬 Delete me, by Friday | Solstice Health | Storage & layout | Professional |
-| 25 | ⚡ Photon on a budget | Juniper Commerce | Cost & elasticity | Professional |
+| 1 | 🧾 FIN-2231: the report that scanned a year | Capsule Corp | Performance | Associate |
+| 2 | 🐢 One task, three hours | Akatsuki Logistics | Joins & shuffle | Associate |
+| 3 | 💥 It only fails on Fridays | Red Ribbon Payments | Memory | Professional |
+| 4 | 🧩 Two million files | Hidden Leaf Sensors | Storage & layout | Associate |
+| 5 | 🐍 The forty-times-slower feature job | Konoha Hospital | PySpark | Professional |
+| 6 | 🎟️ Lost a node, lost the night | Namek Media | Cost & elasticity | Professional |
+| 7 | 📈 Autoscaling that never scales down | Kame House Games | Cost & elasticity | Professional |
+| 8 | 🗂️ Two hundred files a day | Suna Analytics | Storage & layout | Associate |
+| 9 | 🗜️ The one-core, one-hour job | West City Telecom | Storage & layout | Associate |
+| 10 | 📊 Dashboards at nine o'clock | Satan City Retail | Performance | Professional |
+| 11 | 🌊 The stream that ate the heap | Byakugan Pay | Streaming | Professional |
+| 12 | 🔁 Double-counted refunds | Sharingan Ledger | Reliability | Expert |
+| 13 | 🕳️ toPandas() on twenty gigabytes | Gero Labs | Memory | Associate |
+| 14 | 🫧 The cache that made it slower | Mist Village Insurance | Memory | Professional |
+| 15 | 🎮 A GPU for the wide table | Saiyan Genomics | Performance | Expert |
+| 16 | 🚀 CPU-bound at three in the morning | Fire Country Bank | Performance | Professional |
+| 17 | ⭐ The quarter that scanned two years | Ichiraku Mart | Joins & shuffle | Professional |
+| 18 | 🪣 Five terabytes meets five terabytes | Zeni Payments | Joins & shuffle | Expert |
+| 19 | 📋 The day the column became a string | Hyuga Logistics | Reliability | Associate |
+| 20 | 🧾 Half a report | Uchiha Analytics | Reliability | Professional |
+| 21 | 🛰️ Three seconds of nothing | Frieza Force Freight | Performance | Associate |
+| 22 | ⚖️ One notebook to starve them all | Konoha Ninja Academy | Reliability | Professional |
+| 23 | 🧪 Scoring 300 million riders before breakfast | Shunshin Rides | PySpark | Expert |
+| 24 | 🧬 Delete me, by Friday | Chakra Health | Storage & layout | Professional |
+| 25 | ⚡ Photon on a budget | Orange Star Commerce | Cost & elasticity | Professional |
 
-Companies and people in the case studies are fictional. See [docs/authoring-missions.md](docs/authoring-missions.md) to write your own.
+Companies and people in the case studies are fictional. Their names are borrowed from the **Naruto** and **Dragon Ball Z** universes (Capsule Corp, Konoha Hospital, Kakashi Hatake, Bulma Briefs…) purely as recognisable placeholders, so no real company or person is ever quoted. See [docs/authoring-missions.md](docs/authoring-missions.md) to write your own.
 
 ## Project structure
 
@@ -268,4 +268,4 @@ If the playground taught you something, a ⭐ on the repo helps other engineers 
 
 Licensed under the [Apache License, Version 2.0](LICENSE).
 
-*Apache Spark, Databricks, Photon, Delta Lake, Apache Iceberg, Apache Hudi, Apache Celeborn, Apache Gluten, Apache DataFusion Comet, NVIDIA RAPIDS, Amazon EMR, Google Dataproc and other names are trademarks of their respective owners. This is an independent educational project, not affiliated with any of them. Capability scores and plan estimates are deliberately simplified teaching heuristics, not benchmarks.*
+*Apache Spark, Databricks, Photon, Delta Lake, Apache Iceberg, Apache Hudi, Apache Celeborn, Apache Gluten, Apache DataFusion Comet, NVIDIA RAPIDS, Amazon EMR, Google Dataproc and other names are trademarks of their respective owners. This is an independent educational project, not affiliated with any of them. Capability scores and plan estimates are deliberately simplified teaching heuristics, not benchmarks. Naruto characters and entities are the property of Masashi Kishimoto / Shueisha; Dragon Ball Z characters and entities are the property of Akira Toriyama / Bird Studio / Shueisha / Toei Animation. They appear here only as fictional placeholder names in educational case studies; no affiliation or endorsement is implied.*

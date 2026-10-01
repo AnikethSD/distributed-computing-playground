@@ -75,7 +75,7 @@ test('the obvious traps fail the missions that warn about them', () => {
   assert.ok(fails('spot', byId.spot.answer.spark.filter((x) => !['celeborn', 'decommission', 'dynalloc'].includes(x))));
   // Small files: ignoreCorruptFiles hides data loss.
   assert.ok(fails('smallfiles', [...byId.smallfiles.answer.spark, 'ignorecorrupt']));
-  // Maya: filtering on month(pickup_ts) means no partition pruning.
+  // Sakura: filtering on month(pickup_ts) means no partition pruning.
   assert.ok(fails('maya', byId.maya.answer.spark.filter((x) => x !== 'partitionfilter')));
   // Photon: partitionBy alongside liquid clustering is rejected by the platform.
   assert.ok(fails('photon', [...byId.photon.answer.spark, 'partitionby']));

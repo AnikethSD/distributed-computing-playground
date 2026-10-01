@@ -276,7 +276,7 @@
       '== Physical Plan ==',
       'WriteToDataSourceV2 MicroBatchWrite[epoch: 1,207] ' + (exactlyOnce ? '(idempotent by batchId)' : '(append, no idempotency)'),
       `+- HashAggregate(keys=[window, zone_id], functions=[count(1), avg(surge)])`,
-      `   +- StateStoreSave [window, zone_id], state info [ checkpoint = s3a://ridehub/chk/per_zone/, runId = …, opId = 0, ver = 1207, numPartitions = ${parts}], Update, ${bounded ? '10 minutes watermark' : 'NO watermark'}, ${rocks ? 'RocksDBStateStoreProvider' : 'HDFSBackedStateStoreProvider'}`,
+      `   +- StateStoreSave [window, zone_id], state info [ checkpoint = s3a://capsule/chk/per_zone/, runId = …, opId = 0, ver = 1207, numPartitions = ${parts}], Update, ${bounded ? '10 minutes watermark' : 'NO watermark'}, ${rocks ? 'RocksDBStateStoreProvider' : 'HDFSBackedStateStoreProvider'}`,
       `      +- HashAggregate(keys=[window, zone_id], functions=[merge_count(1), merge_avg(surge)])`,
       `         +- StateStoreRestore [window, zone_id]`,
       `            +- Exchange hashpartitioning(window, zone_id, ${parts})`,

@@ -39,11 +39,11 @@
 
   const MISSIONS = [
     {
-      id: 'maya', icon: '🧾', n: 'FIN-2231: the report that scanned a year', co: 'RideHub', cat: 'perf', family: 'spark', lvl: 1,
+      id: 'maya', icon: '🧾', n: 'FIN-2231: the report that scanned a year', co: 'Capsule Corp', cat: 'perf', family: 'spark', lvl: 1,
       brief: 'The March revenue report reads all 365 days and shuffles the zones table. Finance is waiting.',
       story: [
-        'RideHub is a ride-hailing company operating in 40 cities. Its trips table is 2 TB of Parquet in object storage, written nightly and partitioned by dt (16,000 files, one year of history). Finance runs a monthly revenue-per-zone report: filter one month, join to a 50 MB dim_zones table, sum the fares. The job used to take six minutes. Since a refactor three weeks ago it takes fifty, and this week it missed the 07:00 SLA twice.',
-        'Maya, a data engineer in her second week, pulled up the Spark UI. The scan stage reads 2.0 TB and 16,000 tasks: PartitionFilters is empty, because the refactored filter is month(pickup_ts) = 3 instead of a range on dt. The join is a SortMergeJoin with two Exchanges, because the zones table is read from a directory whose size estimate exceeds the 10 MB broadcast threshold. The final write produces 200 files of a few megabytes each. A colleague suggests simply tripling the number of executors.',
+        'Capsule Corp is a ride-hailing company operating in 40 cities. Its trips table is 2 TB of Parquet in object storage, written nightly and partitioned by dt (16,000 files, one year of history). Finance runs a monthly revenue-per-zone report: filter one month, join to a 50 MB dim_zones table, sum the fares. The job used to take six minutes. Since a refactor three weeks ago it takes fifty, and this week it missed the 07:00 SLA twice.',
+        'Sakura, a data engineer in her second week, pulled up the Spark UI. The scan stage reads 2.0 TB and 16,000 tasks: PartitionFilters is empty, because the refactored filter is month(pickup_ts) = 3 instead of a range on dt. The join is a SortMergeJoin with two Exchanges, because the zones table is read from a directory whose size estimate exceeds the 10 MB broadcast threshold. The final write produces 200 files of a few megabytes each. A colleague suggests simply tripling the number of executors.',
       ],
       reqs: [
         'The report must finish in under ten minutes without adding hardware.',
@@ -52,7 +52,7 @@
         'Output should be a handful of right-sized files, not 200 fragments.',
         'The team is on open-source Spark 3.5 on YARN; no platform change this quarter.',
       ],
-      quote: { who: 'Ravi Menon, Staff Engineer', t: 'Before you touch executor counts, read the plan. Spark is telling you exactly which files it opened and why.' },
+      quote: { who: 'Kakashi Hatake, Staff Engineer', t: 'Before you touch executor counts, read the plan. Spark is telling you exactly which files it opened and why.' },
       q: 'Which combination of code and configuration changes brings FIN-2231 back under its SLA while reading the least data?',
       checks: [
         plan('etl', 'Nightly ETL plan prunes partitions (PartitionFilters populated)', (p) => p.pruned),
@@ -61,13 +61,13 @@
         min('io', 'I/O & small-file efficiency', 85), noErr, noDanger,
       ],
       answer: { spark: ['yarn', 'dfapi', 'sqlfuncs', 'jvm', 'aqe', 'aqecoalesce', 'broadcasthint', 'partitionfilter', 'ess', 'execsize', 'history', 'parquet', 'partitionby', 'targetfiles'] },
-      debrief: 'Nothing here needed more executors. A pushdown-friendly predicate on the partition column (dt BETWEEN …) restores partition pruning, so 1,400 tasks read 26 GB instead of 16,000 tasks reading 2 TB. A broadcast hint (or a correct size estimate) turns the join into a BroadcastHashJoin with zero Exchanges for the fact table. AQE coalescing plus coalesce() before the write produces a few files instead of 200. This is the exact ticket from the companion article, "What actually happens when you call spark.read?".',
+      debrief: 'Nothing here needed more executors. A pushdown-friendly predicate on the partition column (dt BETWEEN …) restores partition pruning, so 1,400 tasks read 26 GB instead of 16,000 tasks reading 2 TB. A broadcast hint (or a correct size estimate) turns the join into a BroadcastHashJoin with zero Exchanges for the fact table. AQE coalescing plus coalesce() before the write produces a few files instead of 200. This is the same scenario as the companion article, "What actually happens when you call spark.read?" — only the names differ.',
     },
     {
-      id: 'straggler', icon: '🐢', n: 'One task, three hours', co: 'Kestrel Logistics', cat: 'shuffle', family: 'spark', lvl: 1,
+      id: 'straggler', icon: '🐢', n: 'One task, three hours', co: 'Akatsuki Logistics', cat: 'shuffle', family: 'spark', lvl: 1,
       brief: '199 reducers finish in a minute. One runs for three hours. The pager goes off at 04:00.',
       story: [
-        'Kestrel Logistics routes parcels through 1,200 depots. Every night a Spark job joins 3 TB of scan events to a depot promotions table (800 MB) on depot_id and aggregates discounts per depot. The job has 200 reducers. In the Spark UI, 199 tasks of the join stage complete in under a minute; one task runs for just under three hours, spilling 400 GB to disk. The cluster sits almost idle while it runs.',
+        'Akatsuki Logistics routes parcels through 1,200 depots. Every night a Spark job joins 3 TB of scan events to a depot promotions table (800 MB) on depot_id and aggregates discounts per depot. The job has 200 reducers. In the Spark UI, 199 tasks of the join stage complete in under a minute; one task runs for just under three hours, spilling 400 GB to disk. The cluster sits almost idle while it runs.',
         'The reason is not a mystery: the national sorting hub has depot_id = HUB-01 and handles 30% of all scans. The on-call engineer tried raising spark.sql.shuffle.partitions to 2,000; the slow task got slightly slower. A contractor proposed broadcasting the promotions table "so there is no shuffle at all", which crashed the driver after five minutes. Someone else suggested spark.speculation = true, which launched a copy of the slow task on a second executor that was equally slow.',
       ],
       reqs: [
@@ -77,7 +77,7 @@
         'Only read the 30 days the report needs.',
         'Keep the job on open-source Spark 3.5.',
       ],
-      quote: { who: 'Priya Natarajan, Head of Data Platform', t: 'More partitions did nothing because the problem is one key, not too few buckets. Fix the key, not the count.' },
+      quote: { who: 'Tsunade Senju, Head of Data Platform', t: 'More partitions did nothing because the problem is one key, not too few buckets. Fix the key, not the count.' },
       q: 'Which configuration lets Spark handle the HUB-01 hot key without manual rewrites of the join?',
       checks: [
         plan('skewed', 'Hot-key join plan is no longer a straggler (skew handled)', (p) => !p.skew || p.skew.kind !== 'straggler'),
@@ -89,10 +89,10 @@
       debrief: 'This is textbook data skew. AQE skew-join handling detects that one post-shuffle partition is more than five times the median and larger than 256 MB, and splits it into several reader tasks, each joined against a replicated copy of the matching promotions partition. No code changes, and it adapts when a new hub appears. Raising shuffle.partitions cannot help because every HUB-01 row still hashes to the same partition. Broadcasting 800 MB builds a multi-gigabyte hash relation on the driver, and speculation just runs the same skewed task twice. Key salting is the manual alternative when AQE is unavailable.',
     },
     {
-      id: 'friday', icon: '💥', n: 'It only fails on Fridays', co: 'Northwind Payments', cat: 'memory', family: 'spark', lvl: 2,
+      id: 'friday', icon: '💥', n: 'It only fails on Fridays', co: 'Red Ribbon Payments', cat: 'memory', family: 'spark', lvl: 2,
       brief: '"Could not execute broadcast in 300 secs" — but only on the busiest day of the week.',
       story: [
-        'Northwind Payments settles card transactions for 9,000 merchants. The settlement job joins 1.5 TB of authorisations to a merchants dimension and a daily fee-schedule table. Six months ago a performance consultant set spark.sql.autoBroadcastJoinThreshold to 2 GB "because the executors have 64 GB each", and the job indeed got faster: every join became a BroadcastHashJoin.',
+        'Red Ribbon Payments settles card transactions for 9,000 merchants. The settlement job joins 1.5 TB of authorisations to a merchants dimension and a daily fee-schedule table. Six months ago a performance consultant set spark.sql.autoBroadcastJoinThreshold to 2 GB "because the executors have 64 GB each", and the job indeed got faster: every join became a BroadcastHashJoin.',
         'Since then, on Fridays, when the fee-schedule table grows to 1.3 GB on disk after the weekly re-pricing, the job dies with "Could not execute broadcast in 300 secs" or, on bad weeks, the driver is killed by YARN for exceeding its 4 GB container. Monday to Thursday the table is 300 MB and all is well. The team raised the driver to 16 GB; now the failure is a 20-minute broadcast followed by an executor OOM. The on-call rotation has started calling it "Friday roulette".',
       ],
       reqs: [
@@ -102,8 +102,8 @@
         'Memory safety takes priority over shaving minutes off the runtime.',
         'Spark 3.5 on YARN; a 16 GB driver is acceptable, a 64 GB driver is not.',
       ],
-      quote: { who: 'Tomás Reyes, Engineering Manager', t: 'A tuning knob that works four days out of five is not tuning. It is a time bomb with a weekly timer.' },
-      q: 'How should Northwind configure join planning so broadcasts stay fast on normal days and safe on Fridays?',
+      quote: { who: 'Bulma Briefs, Engineering Manager', t: 'A tuning knob that works four days out of five is not tuning. It is a time bomb with a weekly timer.' },
+      q: 'How should Red Ribbon configure join planning so broadcasts stay fast on normal days and safe on Fridays?',
       checks: [
         { t: 'The 2 GB broadcast threshold is gone', f: (r) => not(r, 'bchuge') },
         plan('etl', 'Nightly ETL still broadcasts the 50 MB dimension', (p) => p.join === 'BHJ' || p.join === 'AQE_BHJ'),
@@ -114,10 +114,10 @@
       debrief: 'Broadcast relations are built on the driver, limited to 8 GB and 512 million rows, and must finish within the 300-second broadcast timeout. A 1.3 GB Parquet table becomes many gigabytes of hashed Java objects, so a 2 GB threshold guarantees failure on the one day the table is large. The fix is to keep the threshold at its default (or 100 MB with a sized driver), broadcast explicitly only the dimensions you know are small, and let AQE convert sort-merge joins to broadcast joins at runtime when the actual shuffled size turns out to be small. A sized driver and maxResultSize make failures fast and legible instead of 20-minute hangs.',
     },
     {
-      id: 'smallfiles', icon: '🧩', n: 'Two million files', co: 'Helio Sensors', cat: 'storage', family: 'spark', lvl: 1,
+      id: 'smallfiles', icon: '🧩', n: 'Two million files', co: 'Hidden Leaf Sensors', cat: 'storage', family: 'spark', lvl: 1,
       brief: 'A full scan of 800 GB takes four hours. Listing alone is forty minutes.',
       story: [
-        'Helio Sensors collects telemetry from 60,000 solar inverters. An ingestion service writes one Parquet file per device per hour into s3://helio/telemetry/, which after a year is 2,000,000 files averaging 400 KB — about 800 GB in total. The daily rollup job that aggregates battery and output metrics per device now takes four hours, of which the first forty minutes show no tasks at all in the Spark UI, just the driver listing S3 prefixes.',
+        'Hidden Leaf Sensors collects telemetry from 60,000 solar inverters. An ingestion service writes one Parquet file per device per hour into s3://hiddenleaf/telemetry/, which after a year is 2,000,000 files averaging 400 KB — about 800 GB in total. The daily rollup job that aggregates battery and output metrics per device now takes four hours, of which the first forty minutes show no tasks at all in the Spark UI, just the driver listing S3 prefixes.',
         'When tasks finally start, there are 1,900,000 of them, each opening a file, reading a footer and processing a few hundred rows; scheduling overhead dominates. The team tried spark.sql.files.maxPartitionBytes = 1 GB, which helped a little. Someone proposed partitionBy(device_id) on the ingestion side "so each device is its own folder", and someone else proposed spark.sql.files.ignoreCorruptFiles = true because a handful of truncated files occasionally kill the job.',
       ],
       reqs: [
@@ -127,7 +127,7 @@
         'Corrupt files must be surfaced and quarantined, never silently skipped.',
         'The raw ingestion service can be changed, but devices will keep sending hourly.',
       ],
-      quote: { who: 'Lena Fischer, Platform Lead', t: 'We do not have a big-data problem. We have a small-file problem that happens to be big.' },
+      quote: { who: 'Temari, Platform Lead', t: 'We do not have a big-data problem. We have a small-file problem that happens to be big.' },
       q: 'Which storage-layout changes make the telemetry rollup fast again without hiding data problems?',
       checks: [
         plan('smallfiles', 'Tiny-files plan needs ≤ 20,000 scan tasks', (p) => p.scanTasks <= 20000),
@@ -139,10 +139,10 @@
       debrief: 'Spark does roughly fixed work per file: a LIST call, a footer read, a task. Two million files means two million of each. Compacting to 128 MB–1 GB files (a scheduled rewrite, or OPTIMIZE on a table format) cuts the task count by three orders of magnitude; partitioning by date keeps the daily job from touching older data; a larger maxPartitionBytes packs what remains. partitionBy(device_id) would create 60,000 directories and make the problem worse, and ignoreCorruptFiles turns a loud failure into silently missing rows. A table format with a transaction log (Delta or Iceberg) would also remove the listing entirely.',
     },
     {
-      id: 'udf', icon: '🐍', n: 'The forty-times-slower feature job', co: 'Lumen Health', cat: 'python', family: 'spark', lvl: 2,
+      id: 'udf', icon: '🐍', n: 'The forty-times-slower feature job', co: 'Konoha Hospital', cat: 'python', family: 'spark', lvl: 2,
       brief: 'A data scientist rewrote a filter as a Python UDF. The pipeline went from 6 minutes to 4 hours.',
       story: [
-        'Lumen Health builds readmission-risk models from 1 TB of de-identified encounter features (60 columns, 90 days). The feature pipeline is PySpark. Last sprint a data scientist added a plain @udf that flags "complex" encounters using a dozen Python if-statements, and a second step that calls model.predict on each row through another @udf. The pipeline now takes four hours instead of six minutes, and executors are periodically killed by Kubernetes for exceeding their memory limit.',
+        'Konoha Hospital builds readmission-risk models from 1 TB of de-identified encounter features (60 columns, 90 days). The feature pipeline is PySpark. Last sprint a data scientist added a plain @udf that flags "complex" encounters using a dozen Python if-statements, and a second step that calls model.predict on each row through another @udf. The pipeline now takes four hours instead of six minutes, and executors are periodically killed by Kubernetes for exceeding their memory limit.',
         'In the plan, BatchEvalPython sits directly above the FileScan and PushedFilters is empty: every row is pickled to a Python worker, evaluated, and sent back. The notebook also ends with df.toPandas() on the 20 GB scored output so the scientist can plot it, which killed the driver twice. A proposal to rewrite everything in Scala was rejected: the team is Python-only, and the model is a scikit-learn pickle.',
       ],
       reqs: [
@@ -152,7 +152,7 @@
         'The 20 GB result must never be pulled whole onto the driver.',
         'Spark 3.5 on Kubernetes.',
       ],
-      quote: { who: 'Dr. Amara Osei, Head of Data Science', t: 'I am not asking anyone to learn Scala. I am asking why Python has to be a hundred times slower than the same expression in SQL.' },
+      quote: { who: 'Dr. Briefs, Head of Data Science', t: 'I am not asking anyone to learn Scala. I am asking why Python has to be a hundred times slower than the same expression in SQL.' },
       q: 'How should the feature pipeline be restructured so Python logic runs at near-native speed and the cluster stays healthy?',
       checks: [
         { t: 'No row-at-a-time Python UDF', f: (r) => not(r, 'pyudf') },
@@ -165,10 +165,10 @@
       debrief: 'A row-at-a-time Python UDF serializes every row with pickle, crosses the JVM boundary, and blocks Catalyst from pushing filters below it. The if-statement flag belongs in built-in functions (F.when), which run in the JVM with codegen. The model call belongs in mapInPandas or a pandas UDF: rows arrive as Arrow batches, the model scores a whole DataFrame at once, and the per-row overhead disappears. Python workers live outside the JVM heap, so spark.executor.memoryOverhead (or pyspark.memory) is what stops Kubernetes from killing the pod. For plotting, aggregate or sample first, then toPandas with Arrow enabled.',
     },
     {
-      id: 'spot', icon: '🎟️', n: 'Lost a node, lost the night', co: 'Vantage Media', cat: 'cost', family: 'spark', lvl: 2,
+      id: 'spot', icon: '🎟️', n: 'Lost a node, lost the night', co: 'Namek Media', cat: 'cost', family: 'spark', lvl: 2,
       brief: 'Spot instances cut the bill by 70%. They also turned a 40-minute job into a four-hour lottery.',
       story: [
-        'Vantage Media processes 2 TB of ad-impression logs nightly on Kubernetes. Finance mandated spot (preemptible) nodes for all batch workloads, and the compute bill fell by 70% in the first month. The job itself, however, now finishes anywhere between 40 minutes and four hours. The Spark UI is full of FetchFailedException, followed by whole shuffle map stages being re-run because the executor that wrote their output was reclaimed with two minutes\' notice.',
+        'Namek Media processes 2 TB of ad-impression logs nightly on Kubernetes. Finance mandated spot (preemptible) nodes for all batch workloads, and the compute bill fell by 70% in the first month. The job itself, however, now finishes anywhere between 40 minutes and four hours. The Spark UI is full of FetchFailedException, followed by whole shuffle map stages being re-run because the executor that wrote their output was reclaimed with two minutes\' notice.',
         'On bad nights, a node holding the driver pod is reclaimed and the entire application restarts from scratch. The team tried spark.task.maxFailures = 1 to "fail fast and retry the whole job", which made things worse, and spark.shuffle.service.enabled = true, which Spark rejected on Kubernetes. A proposal to move back to on-demand nodes was vetoed by finance. The cluster has no remote shuffle service today, but the platform team is willing to run one.',
       ],
       reqs: [
@@ -178,7 +178,7 @@
         'The driver must survive node reclamation.',
         'Spark 3.5 on Kubernetes; a shuffle service can be deployed if needed.',
       ],
-      quote: { who: 'Hugo Alves, FinOps Lead', t: 'Spot is not the problem. Writing irreplaceable data to a disk you have been told will disappear is the problem.' },
+      quote: { who: 'Krillin, FinOps Lead', t: 'Spot is not the problem. Writing irreplaceable data to a disk you have been told will disappear is the problem.' },
       q: 'Which architecture makes the nightly job spot-tolerant while keeping the cost savings?',
       checks: [
         { t: 'Spot workers are used', f: (r) => has(r, 'spot') },
@@ -190,10 +190,10 @@
       debrief: 'Spark shuffle files live on the local disk of the executor that produced them. Lose the node and every reducer that needed those blocks gets FetchFailed, which triggers a re-run of the map stage. A remote shuffle service such as Apache Celeborn makes executors stateless: map output is pushed to a separate, on-demand service cluster, so preemption costs nothing. Graceful decommissioning uses the two-minute notice to migrate blocks and stop scheduling tasks. Generous task retries absorb the transient errors that remain. On Kubernetes there is no external shuffle service, which is why dynamic allocation needs shuffle tracking or a remote shuffle service. The driver should run on an on-demand node.',
     },
     {
-      id: 'k8sbill', icon: '📈', n: 'Autoscaling that never scales down', co: 'Orbit Games', cat: 'cost', family: 'spark', lvl: 2,
+      id: 'k8sbill', icon: '📈', n: 'Autoscaling that never scales down', co: 'Kame House Games', cat: 'cost', family: 'spark', lvl: 2,
       brief: 'Dynamic allocation is "enabled". The Kubernetes bill says otherwise.',
       story: [
-        'Orbit Games runs player-analytics ETL on Spark 3.5 on Kubernetes. Each job starts with spark.dynamicAllocation.enabled = true and maxExecutors = 200. Jobs reach 200 executors within a minute and keep all 200 until the application exits, even while a single-task final stage runs for twenty minutes. The monthly bill is three times what capacity planning predicted.',
+        'Kame House Games runs player-analytics ETL on Spark 3.5 on Kubernetes. Each job starts with spark.dynamicAllocation.enabled = true and maxExecutors = 200. Jobs reach 200 executors within a minute and keep all 200 until the application exits, even while a single-task final stage runs for twenty minutes. The monthly bill is three times what capacity planning predicted.',
         'The platform engineer found the reason in the driver log: executors with shuffle files cannot be released because there is no external shuffle service on Kubernetes, and the first attempt to set spark.shuffle.service.enabled = true failed outright. An intern then enabled shuffle tracking with the default timeout, which released a few executors but only long after their shuffle data was consumed. Management wants "the elastic cluster we were promised", and the analytics team has threatened to go back to a fixed-size YARN cluster.',
       ],
       reqs: [
@@ -203,8 +203,8 @@
         'Keep the Spark UI available after jobs finish, for chargeback reports.',
         'Spark 3.5 open source.',
       ],
-      quote: { who: 'Sofia Marchetti, Director of Platform', t: 'We bought an elastic cluster and got a fixed one with extra steps.' },
-      q: 'How should Orbit Games configure shuffle and scheduling so dynamic allocation actually scales down on Kubernetes?',
+      quote: { who: 'Android 18, Director of Platform', t: 'We bought an elastic cluster and got a fixed one with extra steps.' },
+      q: 'How should Kame House Games configure shuffle and scheduling so dynamic allocation actually scales down on Kubernetes?',
       checks: [
         { t: 'Runs on Kubernetes', f: (r) => has(r, 'k8s') },
         { t: 'Dynamic allocation is active (its prerequisite is met)', f: (r) => has(r, 'dynalloc') },
@@ -216,10 +216,10 @@
       debrief: 'Dynamic allocation can only remove an executor if nothing still needs the shuffle blocks on its disk. YARN solves this with the external shuffle service; Kubernetes has none. Shuffle tracking is the built-in workaround, but it keeps executors alive until the shuffle is consumed and the timeout expires, which is why scale-down was slow. A remote shuffle service (Celeborn or Uniffle) moves shuffle data off executors entirely, so idle executors are released immediately and the cluster becomes genuinely elastic. Event logs plus the History Server keep the UI, and therefore chargeback data, after the application exits.',
     },
     {
-      id: 'files200', icon: '🗂️', n: 'Two hundred files a day', co: 'Brightpath Analytics', cat: 'storage', family: 'spark', lvl: 1,
+      id: 'files200', icon: '🗂️', n: 'Two hundred files a day', co: 'Suna Analytics', cat: 'storage', family: 'spark', lvl: 1,
       brief: 'Every daily output is exactly 200 files. Someone fixed it with shuffle.partitions = 1.',
       story: [
-        'Brightpath Analytics produces a daily customer-metrics table for 300 downstream dashboards. The job aggregates 500 GB of events into about 500 MB of results. Every day it writes exactly 200 Parquet files of 2–3 MB each, because the final aggregation runs with the default 200 shuffle partitions and the write inherits them. After a year, the table has 73,000 files and the dashboards\' first query of the morning takes two minutes just to list and open them.',
+        'Suna Analytics produces a daily customer-metrics table for 300 downstream dashboards. The job aggregates 500 GB of events into about 500 MB of results. Every day it writes exactly 200 Parquet files of 2–3 MB each, because the final aggregation runs with the default 200 shuffle partitions and the write inherits them. After a year, the table has 73,000 files and the dashboards\' first query of the morning takes two minutes just to list and open them.',
         'A developer "fixed" the problem by setting spark.sql.shuffle.partitions = 1 in the job config. The output became one file; the job became four hours long, because every aggregation and join in the pipeline now runs on a single task, and that task spills gigabytes to disk. The BI team is happy, the platform team is not, and the job now misses its window. A second proposal is to run a nightly Python script that merges files with pyarrow.',
       ],
       reqs: [
@@ -229,7 +229,7 @@
         'The job must finish well inside its one-hour window.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Nadia Hussain, BI Lead', t: 'I asked for fewer files. I did not ask for a single core doing all the work.' },
+      quote: { who: 'Hinata Hyuga, BI Lead', t: 'I asked for fewer files. I did not ask for a single core doing all the work.' },
       q: 'Which approach yields a handful of output files per day while keeping the pipeline parallel?',
       checks: [
         { t: 'spark.sql.shuffle.partitions is not 1', f: (r) => not(r, 'shuffle1') },
@@ -241,10 +241,10 @@
       debrief: 'The number of output files equals the number of partitions of the final DataFrame, which by default is whatever the last shuffle produced: 200. The right fix is to decide that number at the write, with coalesce(n) (no shuffle) or repartition(n, col) when you also want the data grouped, while leaving shuffle.partitions alone so the heavy stages stay parallel. AQE coalescing already merges tiny post-shuffle partitions toward the 64 MB advisory size, which usually makes the problem mostly disappear on its own. shuffle.partitions = 1 is the classic trap: it serialises every shuffle in the job, not just the last one.',
     },
     {
-      id: 'csvgz', icon: '🗜️', n: 'The one-core, one-hour job', co: 'Meridian Telecom', cat: 'storage', family: 'spark', lvl: 1,
+      id: 'csvgz', icon: '🗜️', n: 'The one-core, one-hour job', co: 'West City Telecom', cat: 'storage', family: 'spark', lvl: 1,
       brief: 'A 50 GB file arrives nightly. Spark reads it with exactly one task on a 400-core cluster.',
       story: [
-        'Meridian Telecom receives a nightly call-detail export from a billing vendor: a single 50 GB gzip-compressed CSV uploaded to object storage at 01:00. A Spark job on a 400-core YARN cluster parses it, casts types, and writes Parquet for downstream teams. The job takes 70 minutes, and in the Spark UI the scan stage has exactly one task, running on one core, while 399 cores idle. Raising executor counts changed nothing.',
+        'West City Telecom receives a nightly call-detail export from a billing vendor: a single 50 GB gzip-compressed CSV uploaded to object storage at 01:00. A Spark job on a 400-core YARN cluster parses it, casts types, and writes Parquet for downstream teams. The job takes 70 minutes, and in the Spark UI the scan stage has exactly one task, running on one core, while 399 cores idle. Raising executor counts changed nothing.',
         'The job also uses inferSchema = true, so Spark reads the whole file once to guess types and then again to load it; on two occasions the inferred type of a column changed between days (an integer column had a null one day and became a string), breaking downstream jobs. The vendor can change the export format but needs a specification. A colleague suggested splitting the file with a shell script before Spark reads it; another suggested spark.sql.files.maxPartitionBytes = 64 MB.',
       ],
       reqs: [
@@ -254,7 +254,7 @@
         'Avoid ad-hoc shell preprocessing.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Ines Carvalho, Data Engineering Manager', t: 'Four hundred cores and one of them is working. I want to understand why before we buy a 401st.' },
+      quote: { who: 'Chi-Chi, Data Engineering Manager', t: 'Four hundred cores and one of them is working. I want to understand why before we buy a 401st.' },
       q: 'What combination of file format and read settings makes the nightly import both parallel and deterministic?',
       checks: [
         { t: 'Input is no longer a single gzip-compressed text file', f: (r) => not(r, 'csvgz') },
@@ -267,10 +267,10 @@
       debrief: 'gzip has no block index, so a gzip file cannot be split: one file is one task no matter how big it is or how many cores you have. maxPartitionBytes cannot override that. The fix is at the source: ask the vendor for many ~128 MB files, a splittable codec (bzip2, or zstd with seekable frames), or ideally Parquet. Convert once on landing and let every downstream read hit Parquet. An explicit schema removes the inference pass and the type drift: with inferSchema, one null in an integer column is enough to turn it into a string for the day.',
     },
     {
-      id: 'bi', icon: '📊', n: 'Dashboards at nine o\'clock', co: 'Cobalt Retail', cat: 'perf', family: 'spark', lvl: 2,
+      id: 'bi', icon: '📊', n: 'Dashboards at nine o\'clock', co: 'Satan City Retail', cat: 'perf', family: 'spark', lvl: 2,
       brief: 'Forty analysts open Tableau at 09:00. One analyst\'s query blocks the other thirty-nine.',
       story: [
-        'Cobalt Retail serves 40 analysts from a Spark Thrift Server over JDBC. Dashboards query the last week of sales (about 70 GB of a 500 GB Delta table) and join to small dimensions. At 09:00 every weekday, p95 dashboard latency climbs from 4 seconds to 90 seconds. The Spark UI shows a single analyst\'s year-to-date query occupying every core for a minute while thirty-nine short queries wait in the FIFO queue behind it.',
+        'Satan City Retail serves 40 analysts from a Spark Thrift Server over JDBC. Dashboards query the last week of sales (about 70 GB of a 500 GB Delta table) and join to small dimensions. At 09:00 every weekday, p95 dashboard latency climbs from 4 seconds to 90 seconds. The Spark UI shows a single analyst\'s year-to-date query occupying every core for a minute while thirty-nine short queries wait in the FIFO queue behind it.',
         'Each query also re-reads the same week of data from object storage; nothing is cached. Joins to the 20 MB dimensions come out as sort-merge joins with two Exchanges because the dimension files are estimated above the 10 MB threshold. The table was written without any clustering, so filters on store_id touch every file. The BI vendor suggests buying a separate warehouse; the platform team suggests giving each analyst their own Spark cluster, which would cost 40 times more.',
       ],
       reqs: [
@@ -280,7 +280,7 @@
         'Filters on store_id should skip most files.',
         'Keep one shared Spark endpoint on Kubernetes; no per-user clusters.',
       ],
-      quote: { who: 'Daniel Brooks, Head of Analytics', t: 'I do not need the big query to be fast. I need it to stop making every other query slow.' },
+      quote: { who: 'Shikamaru Nara, Head of Analytics', t: 'I do not need the big query to be fast. I need it to stop making every other query slow.' },
       q: 'How should the shared Spark SQL endpoint be configured for consistent sub-5-second dashboards?',
       checks: [
         { t: 'A long-running shared endpoint (Thrift server or Spark Connect)', f: (r) => has(r, 'thrift', 'connect') },
@@ -293,10 +293,10 @@
       debrief: 'Interactive workloads are about not doing work: FAIR pools give short queries their share of cores regardless of the big one; caching the current week with MEMORY_AND_DISK means the second dashboard reads memory, not S3; Z-ORDER on store_id lets per-file statistics skip most files; broadcast hints and AQE remove the two Exchanges around every dimension join. Reusing one DataFrame per source avoids re-listing. None of this needs a second warehouse or forty clusters, and the Thrift server (or Spark Connect) keeps the SparkSession warm between queries.',
     },
     {
-      id: 'state', icon: '🌊', n: 'The stream that ate the heap', co: 'PulsePay', cat: 'streaming', family: 'spark', lvl: 2,
+      id: 'state', icon: '🌊', n: 'The stream that ate the heap', co: 'Byakugan Pay', cat: 'streaming', family: 'spark', lvl: 2,
       brief: 'A fraud-scoring stream runs fine for six hours, then GC pauses stretch each micro-batch to minutes.',
       story: [
-        'PulsePay scores card transactions in near real time. A Structured Streaming job reads 40,000 events per second from Kafka, aggregates per card over five-minute windows, and writes alerts. For the first six hours after a restart, micro-batches complete in eight seconds. Then batch durations climb, executors log multi-second GC pauses, and after twelve hours an executor dies with OutOfMemoryError and the query restarts from its checkpoint, only to repeat the cycle.',
+        'Byakugan Pay scores card transactions in near real time. A Structured Streaming job reads 40,000 events per second from Kafka, aggregates per card over five-minute windows, and writes alerts. For the first six hours after a restart, micro-batches complete in eight seconds. Then batch durations climb, executors log multi-second GC pauses, and after twelve hours an executor dies with OutOfMemoryError and the query restarts from its checkpoint, only to repeat the cycle.',
         'The job has no watermark, so every five-minute window ever seen is still being tracked; the state store (the default HDFS-backed one) keeps all of it as objects on the executor heap. Someone set spark.sql.shuffle.partitions = 1,000 to "spread the state", which changed nothing because the number of state partitions was fixed into the checkpoint when the query first ran. The fraud team needs each batch under 15 seconds, around the clock, and cannot accept duplicate alerts after restarts.',
       ],
       reqs: [
@@ -306,8 +306,8 @@
         'Restarts must not produce duplicate alerts.',
         'Spark 3.5 on Kubernetes, Kafka source.',
       ],
-      quote: { who: 'Mei Lin, Fraud Platform Lead', t: 'A stream that works for six hours is a batch job with a bad ending.' },
-      q: 'How should PulsePay configure the streaming query so state stays bounded and the executors stay alive?',
+      quote: { who: 'Videl Satan, Fraud Platform Lead', t: 'A stream that works for six hours is a batch job with a bad ending.' },
+      q: 'How should Byakugan Pay configure the streaming query so state stays bounded and the executors stay alive?',
       checks: [
         { t: 'Structured Streaming with a watermark bounding window state', f: (r) => has(r, 'streaming') && has(r, 'watermark') },
         { t: 'RocksDB state store keeps state off the heap', f: (r) => has(r, 'rocksdb') },
@@ -318,10 +318,10 @@
       debrief: 'Stateful streaming without a watermark is unbounded by definition: Spark cannot know a window is finished, so it keeps every window forever. A watermark on event time tells it when to drop state. The RocksDB state store provider keeps that state in native memory and on local disk instead of as JVM objects, which removes the GC pauses. Shuffle partitions for a stateful query are frozen in the checkpoint, so plan them before the first run. For exactly-once alerts, write each micro-batch idempotently (foreachBatch with MERGE keyed by batchId) or to a transactional table format.',
     },
     {
-      id: 'exactly', icon: '🔁', n: 'Double-counted refunds', co: 'Ledgerly', cat: 'reliability', family: 'spark', lvl: 3,
+      id: 'exactly', icon: '🔁', n: 'Double-counted refunds', co: 'Sharingan Ledger', cat: 'reliability', family: 'spark', lvl: 3,
       brief: 'After every restart the refunds table has duplicates. Speculation makes it worse.',
       story: [
-        'Ledgerly is a bookkeeping platform. A Structured Streaming job reads refund events from Kafka and appends them to a plain Parquet directory that an hourly batch job then aggregates into customer balances. Auditors found that after each restart of the streaming job, some refunds appear twice: the previous micro-batch had written its files but crashed before the checkpoint committed, so it was replayed. The hourly batch job runs with spark.speculation = true and occasionally produces two copies of the same partition file.',
+        'Sharingan Ledger is a bookkeeping platform. A Structured Streaming job reads refund events from Kafka and appends them to a plain Parquet directory that an hourly batch job then aggregates into customer balances. Auditors found that after each restart of the streaming job, some refunds appear twice: the previous micro-batch had written its files but crashed before the checkpoint committed, so it was replayed. The hourly batch job runs with spark.speculation = true and occasionally produces two copies of the same partition file.',
         'The team tried deduplicating in the batch job with dropDuplicates, which hides the symptom but costs a full shuffle of the table every hour. They considered Kafka transactions, which do not help on the Spark output side. A consultant recommended "exactly-once mode", which is not a Spark setting. The CFO has asked for a design that is provably idempotent: replaying any micro-batch, or running any task twice, must produce the same table.',
       ],
       reqs: [
@@ -331,7 +331,7 @@
         'Streaming state must be bounded and off-heap.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Grace Whitfield, CFO', t: 'I can explain a late number to the auditors. I cannot explain a number that exists twice.' },
+      quote: { who: 'Gaara, CFO', t: 'I can explain a late number to the auditors. I cannot explain a number that exists twice.' },
       q: 'Which sink and scheduling design makes both the streaming write and the batch write idempotent?',
       checks: [
         { t: 'Streaming writes via foreachBatch keyed by batchId', f: (r) => has(r, 'streaming') && has(r, 'foreachbatch') },
@@ -343,10 +343,10 @@
       debrief: 'Structured Streaming guarantees exactly-once only end to end with a replayable source and an idempotent sink. A plain file directory is not idempotent: a replayed micro-batch appends again. Writing each batch through foreachBatch with MERGE INTO a Delta/Iceberg/Hudi table, keyed by batchId, makes replays no-ops. The same transactional commit protocol makes speculative or retried batch tasks safe, since only one task\'s files are ever committed. Deduplicating downstream is a patch, not a design; the correct place to be idempotent is the write.',
     },
     {
-      id: 'oom', icon: '🕳️', n: 'toPandas() on twenty gigabytes', co: 'Sable Research', cat: 'memory', family: 'spark', lvl: 1,
+      id: 'oom', icon: '🕳️', n: 'toPandas() on twenty gigabytes', co: 'Gero Labs', cat: 'memory', family: 'spark', lvl: 1,
       brief: 'Notebook users keep killing the shared driver. The fix must not be "stop using pandas".',
       story: [
-        'Sable Research runs a shared PySpark notebook environment for 60 quantitative analysts. Several times a week the driver JVM dies with java.lang.OutOfMemoryError and every connected notebook loses its session. The post-mortems always find the same pattern: an analyst filters a 2 TB positions table, gets a result they believe is small, and calls .toPandas() or .collect() on it. One such result was 20 GB.',
+        'Gero Labs runs a shared PySpark notebook environment for 60 quantitative analysts. Several times a week the driver JVM dies with java.lang.OutOfMemoryError and every connected notebook loses its session. The post-mortems always find the same pattern: an analyst filters a 2 TB positions table, gets a result they believe is small, and calls .toPandas() or .collect() on it. One such result was 20 GB.',
         'The platform team raised spark.driver.memory from 8 GB to 32 GB, which only increased the size of result that could take everyone down. spark.driver.maxResultSize is still at its 1 GB default on paper but was set to 0 (unlimited) in a notebook template years ago. toPandas() is also slow even when it succeeds, because Arrow transfer is disabled. Analysts refuse to give up pandas for plotting and modelling, and leadership wants an architecture where one person\'s mistake cannot affect fifty-nine others.',
       ],
       reqs: [
@@ -356,7 +356,7 @@
         'Analysts keep pandas and Python; the pandas API on Spark is welcome.',
         'Spark 3.5 on Kubernetes.',
       ],
-      quote: { who: 'Dr. Elias Nordqvist, Head of Quant Research', t: 'I do not want my analysts to think about JVM heaps. I want the platform to say no before the heap does.' },
+      quote: { who: 'Dr. Gero, Head of Quant Research', t: 'I do not want my analysts to think about JVM heaps. I want the platform to say no before the heap does.' },
       q: 'How should the notebook platform be configured so collect-style mistakes are contained and the normal path is fast?',
       checks: [
         { t: 'No collect() / toPandas() of a whole table', f: (r) => not(r, 'collectall') },
@@ -369,10 +369,10 @@
       debrief: 'Everything collected lands on the driver, so the driver is the one place in Spark with no horizontal scaling. spark.driver.maxResultSize is the guardrail: set it to a few gigabytes and an oversized collect() fails immediately with a readable message. Arrow makes the legitimate toPandas() path columnar and fast. Spark Connect runs each notebook as a thin client against a server-side session, so a bad collect() hurts one session, not sixty. For analysis that genuinely needs the whole table, the pandas API on Spark gives pandas syntax with distributed execution.',
     },
     {
-      id: 'cache', icon: '🫧', n: 'The cache that made it slower', co: 'Tidewater Insurance', cat: 'memory', family: 'spark', lvl: 2,
+      id: 'cache', icon: '🫧', n: 'The cache that made it slower', co: 'Mist Village Insurance', cat: 'memory', family: 'spark', lvl: 2,
       brief: 'Someone added persist(MEMORY_ONLY) to a single-pass ETL. The job doubled in length and started failing.',
       story: [
-        'Tidewater Insurance runs a nightly claims-enrichment job over 2 TB of Parquet on a YARN cluster with 160 GB of total executor memory. The job reads claims once, joins two small dimensions, and writes an enriched table. After a "performance workshop", a developer added claims.persist(StorageLevel.MEMORY_ONLY) right after the read "so Spark does not have to re-read from S3". The job went from 35 minutes to 80, and twice last week an executor died with OutOfMemoryError.',
+        'Mist Village Insurance runs a nightly claims-enrichment job over 2 TB of Parquet on a YARN cluster with 160 GB of total executor memory. The job reads claims once, joins two small dimensions, and writes an enriched table. After a "performance workshop", a developer added claims.persist(StorageLevel.MEMORY_ONLY) right after the read "so Spark does not have to re-read from S3". The job went from 35 minutes to 80, and twice last week an executor died with OutOfMemoryError.',
         'The Storage tab in the Spark UI shows the cached RDD at 8% in memory. Blocks are evicted under memory pressure and recomputed from lineage when needed, which happens constantly because MEMORY_ONLY never spills to disk. Meanwhile the unified memory manager has less room for shuffle and join hash tables. A second developer suggested switching to MEMORY_AND_DISK and a third suggested Kryo "to make the cache smaller". Nobody has asked whether the DataFrame is read more than once.',
       ],
       reqs: [
@@ -382,8 +382,8 @@
         'Fit the job on the existing cluster; no memory upgrades.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Owen Gallagher, Lead Data Engineer', t: 'Caching is not free storage. It is a bet that you will read the data again, and we never do.' },
-      q: 'What should Tidewater change about caching and memory to make the enrichment job fast and stable again?',
+      quote: { who: 'Yamcha, Lead Data Engineer', t: 'Caching is not free storage. It is a bet that you will read the data again, and we never do.' },
+      q: 'What should Mist Village change about caching and memory to make the enrichment job fast and stable again?',
       checks: [
         { t: 'No MEMORY_ONLY persist of the huge dataset', f: (r) => not(r, 'cacheonly') },
         { t: 'No caching at all in a single-pass job', f: (r) => not(r, 'cachemem', 'cacheser') },
@@ -394,10 +394,10 @@
       debrief: 'cache() and persist() only pay off when a DataFrame is used more than once. In a single-pass job the cache is pure overhead: Spark materialises every partition (costing memory and CPU) for a second read that never happens. MEMORY_ONLY makes it worse, because evicted blocks are recomputed from S3 instead of being spilled, and the cache competes with execution memory for shuffles and joins. Remove the persist, broadcast the small dimensions, keep executors at 4–5 cores with a sensible heap, and give Tungsten off-heap room. Kryo would have shrunk a cache that should not exist.',
     },
     {
-      id: 'gpu', icon: '🎮', n: 'A GPU for the wide table', co: 'Aurora Genomics', cat: 'perf', family: 'spark', lvl: 3,
+      id: 'gpu', icon: '🎮', n: 'A GPU for the wide table', co: 'Saiyan Genomics', cat: 'perf', family: 'spark', lvl: 3,
       brief: 'A 300-column join-and-aggregate job is CPU-bound. The GPU pilot ran slower than the CPUs.',
       story: [
-        'Aurora Genomics joins 4 TB of variant calls (300 numeric columns) to sample metadata and computes per-cohort statistics nightly. The job is entirely DataFrame operations and saturates the CPU of a 400-core YARN cluster for three hours. A vendor demonstrated the RAPIDS Accelerator for Apache Spark on a GPU cluster and showed a 6× speed-up on a benchmark, so Aurora bought eight GPU nodes for a pilot.',
+        'Saiyan Genomics joins 4 TB of variant calls (300 numeric columns) to sample metadata and computes per-cohort statistics nightly. The job is entirely DataFrame operations and saturates the CPU of a 400-core YARN cluster for three hours. A vendor demonstrated the RAPIDS Accelerator for Apache Spark on a GPU cluster and showed a 6× speed-up on a benchmark, so Saiyan Genomics bought eight GPU nodes for a pilot.',
         'The pilot ran slower than the CPU cluster. In the plan, every operator is wrapped in GpuColumnarToRow and GpuRowToColumnar transitions because the job contains one Scala UDF that normalises sample IDs and a small Python UDF for a legacy flag. Executors also crash with GPU out-of-memory because nothing was configured for pinned or off-heap memory, and the GPU nodes sit idle during the scan-heavy first stage, which is I/O bound and would run fine on cheap CPU nodes.',
       ],
       reqs: [
@@ -407,8 +407,8 @@
         'The nightly job must finish in under an hour.',
         'Spark 3.5 on Kubernetes with a GPU node pool.',
       ],
-      quote: { who: 'Dr. Hana Yoshida, VP Computational Biology', t: 'We did not buy GPUs to watch them convert rows to columns and back.' },
-      q: 'How should Aurora configure the engine, memory and scheduling to make the GPU pilot deliver?',
+      quote: { who: 'Dr. Shizune, VP Computational Biology', t: 'We did not buy GPUs to watch them convert rows to columns and back.' },
+      q: 'How should Saiyan Genomics configure the engine, memory and scheduling to make the GPU pilot deliver?',
       checks: [
         { t: 'RAPIDS Accelerator is the execution engine', f: (r) => !!r.engine && r.engine.id === 'rapids' },
         { t: 'No UDFs or RDD code that force fallback to the JVM', f: (r) => not(r, 'pyudf', 'arrowudf', 'pandasudf', 'mapinpandas', 'scalaudf', 'rdd') },
@@ -420,10 +420,10 @@
       debrief: 'A native engine, GPU or otherwise, is only fast when the whole stage runs natively. A single UDF in the middle forces a conversion to JVM rows and back on every batch, which is slower than never leaving the CPU. Rewrite the two UDFs with built-in functions (regexp_replace, when) so Catalyst, and therefore RAPIDS, can see them. GPU memory is small; pinned memory and overhead settings keep the executors alive. Stage-level scheduling lets the I/O-bound scan run on CPU executors and requests GPU executors only for the join-and-aggregate stage, which is where the 6× lives.',
     },
     {
-      id: 'native', icon: '🚀', n: 'CPU-bound at three in the morning', co: 'Granite Bank', cat: 'perf', family: 'spark', lvl: 2,
+      id: 'native', icon: '🚀', n: 'CPU-bound at three in the morning', co: 'Fire Country Bank', cat: 'perf', family: 'spark', lvl: 2,
       brief: 'The regulatory ETL needs to be twice as fast. Procurement says no new hardware.',
       story: [
-        'Granite Bank produces a daily regulatory report from 3 TB of transactions with a 200-line Spark SQL pipeline: joins, window functions, aggregations. The job is CPU-bound on a 600-core YARN cluster and takes 2 hours 40 minutes; the regulator\'s deadline leaves a 3-hour window and a merger will double data volume next quarter. Procurement has frozen hardware spend, and the bank\'s policy requires open-source software it can audit, so Photon on Databricks was ruled out.',
+        'Fire Country Bank produces a daily regulatory report from 3 TB of transactions with a 200-line Spark SQL pipeline: joins, window functions, aggregations. The job is CPU-bound on a 600-core YARN cluster and takes 2 hours 40 minutes; the regulator\'s deadline leaves a 3-hour window and a merger will double data volume next quarter. Procurement has frozen hardware spend, and the bank\'s policy requires open-source software it can audit, so Photon on Databricks was ruled out.',
         'An engineer benchmarked Gluten with Velox and Apache Comet on a copy of the pipeline. Both roughly halved CPU time on the SQL stages. But the first production trial failed: executors died with native memory allocation errors because nothing was configured off-heap, and a Scala UDF used for account masking caused the plan to fall back to the JVM around it. The CISO is also asking whether a native engine changes the memory model the bank has already approved.',
       ],
       reqs: [
@@ -433,7 +433,7 @@
         'Memory configuration must be explicit and documented.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Marcus Oyelaran, Head of Regulatory Reporting', t: 'If the file is late, the fine is bigger than the cluster. Twice as fast, same machines, auditable code.' },
+      quote: { who: 'Itachi Uchiha, Head of Regulatory Reporting', t: 'If the file is late, the fine is bigger than the cluster. Twice as fast, same machines, auditable code.' },
       q: 'Which open-source execution engine and memory configuration delivers the 2× without new hardware?',
       checks: [
         { t: 'An open-source native engine (Gluten + Velox or Apache Comet)', f: (r) => !!r.engine && ['gluten', 'comet'].includes(r.engine.id) },
@@ -445,10 +445,10 @@
       debrief: 'Gluten (with Velox) and Apache Comet replace Spark\'s JVM operators with vectorised native ones behind the same DataFrame API; on SQL-heavy pipelines they commonly halve CPU time. They allocate from off-heap memory, so spark.memory.offHeap.enabled and a sized offHeap.size are mandatory, and the executor heap can shrink accordingly. Any UDF breaks the native stage with a columnar-to-row round trip, so the masking logic must become built-in expressions (sha2, regexp_replace, overlay). Photon offers the same idea but only on Databricks, which the policy excludes.',
     },
     {
-      id: 'starschema', icon: '⭐', n: 'The quarter that scanned two years', co: 'Pinecrest Retail', cat: 'shuffle', family: 'spark', lvl: 2,
+      id: 'starschema', icon: '⭐', n: 'The quarter that scanned two years', co: 'Ichiraku Mart', cat: 'shuffle', family: 'spark', lvl: 2,
       brief: 'The fact table is partitioned by date. The query filters by fiscal quarter. Spark reads everything.',
       story: [
-        'Pinecrest Retail has a classic star schema: a 5 TB fact_sales table partitioned by dt (two years), plus dim_calendar, dim_store and dim_product. Analysts never filter by raw date; they filter dim_calendar on fiscal_quarter and join. Every quarterly report therefore joins the whole fact table to the calendar and only then discards 90% of it. The join to the 300 MB product dimension is a sort-merge join that shuffles the entire fact table.',
+        'Ichiraku Mart has a classic star schema: a 5 TB fact_sales table partitioned by dt (two years), plus dim_calendar, dim_store and dim_product. Analysts never filter by raw date; they filter dim_calendar on fiscal_quarter and join. Every quarterly report therefore joins the whole fact table to the calendar and only then discards 90% of it. The join to the 300 MB product dimension is a sort-merge join that shuffles the entire fact table.',
         'A previous team enabled the cost-based optimizer, but nobody runs ANALYZE TABLE, so statistics are missing and join order is guessed. The tables are plain Parquet directories with no metastore, so partition discovery lists 40,000 files per query. One analyst "fixed" the problem by hardcoding date ranges in each report, which broke the first time the fiscal calendar shifted. Leadership wants quarter reports in under ten minutes on the existing YARN cluster.',
       ],
       reqs: [
@@ -458,7 +458,7 @@
         'Partition metadata should come from a catalog, not a directory listing.',
         'Spark 3.5 on YARN; keep the star schema.',
       ],
-      quote: { who: 'Caroline Dubois, Director of Finance Analytics', t: 'The calendar table knows which days are in the quarter. Why does Spark read the other six hundred?' },
+      quote: { who: 'Kurenai Yuhi, Director of Finance Analytics', t: 'The calendar table knows which days are in the quarter. Why does Spark read the other six hundred?' },
       q: 'Which planner features and table setup make quarterly star-schema queries prune and broadcast correctly?',
       checks: [
         plan('starjoin', 'Star-schema plan prunes fact partitions via the calendar join (DPP)', (p) => p.pruned),
@@ -472,10 +472,10 @@
       debrief: 'Dynamic partition pruning is built for exactly this: when the fact table is partitioned on the join key and the dimension side is filtered, Spark broadcasts the filtered dimension first and uses its keys to prune fact partitions before scanning. It requires the dimension to be broadcastable, so a 100 MB threshold or explicit hints matter. A metastore (or table format) turns partition discovery into a catalog lookup instead of 40,000 LIST calls. The cost-based optimizer is only as good as its statistics; schedule ANALYZE TABLE … COMPUTE STATISTICS FOR ALL COLUMNS after each load.',
     },
     {
-      id: 'bucket', icon: '🪣', n: 'Five terabytes meets five terabytes', co: 'Atlas Payments', cat: 'shuffle', family: 'spark', lvl: 3,
+      id: 'bucket', icon: '🪣', n: 'Five terabytes meets five terabytes', co: 'Zeni Payments', cat: 'shuffle', family: 'spark', lvl: 3,
       brief: 'Daily reconciliation joins two huge tables on trip_id. The shuffle is 10 TB and the disks fill up.',
       story: [
-        'Atlas Payments reconciles 5 TB of trip records against 5 TB of captured payments every day, joined on trip_id, then exports a globally sorted file set for the auditors. Both inputs are plain Parquet. The join is a sort-merge join that shuffles both sides: 10 TB across the network and onto local disks, which fill up on the busiest executors and kill the stage. Neither side can be broadcast.',
+        'Zeni Payments reconciles 5 TB of trip records against 5 TB of captured payments every day, joined on trip_id, then exports a globally sorted file set for the auditors. Both inputs are plain Parquet. The join is a sort-merge join that shuffles both sides: 10 TB across the network and onto local disks, which fill up on the busiest executors and kill the stage. Neither side can be broadcast.',
         'The team tried tuning spark.sql.shuffle.partitions up and down, tried disabling shuffle compression "to save CPU", and tried bigger executors with 64 cores each, which made disk contention worse. Someone noticed the same two tables are joined on the same key by six other jobs every day. A proposal to switch to a shuffled hash join reduced CPU slightly but still moved 10 TB. The global orderBy at the end adds a third shuffle and a sampling job that nobody expected in the Jobs tab.',
       ],
       reqs: [
@@ -485,7 +485,7 @@
         'Right-size reducers for the remaining shuffle (the sort).',
         'Spark 3.5 on YARN with a Hive metastore available.',
       ],
-      quote: { who: 'Ibrahim Khan, Principal Engineer', t: 'Seven jobs shuffle the same ten terabytes on the same key every day. Shuffle it once, when you write.' },
+      quote: { who: 'Piccolo, Principal Engineer', t: 'Seven jobs shuffle the same ten terabytes on the same key every day. Shuffle it once, when you write.' },
       q: 'How should the two tables be laid out and joined so the reconciliation has no Exchange on the join?',
       checks: [
         plan('bigjoin', 'Big-to-big join plan has no Exchange on the join (bucketed)', (p) => p.join === 'BUCKET'),
@@ -498,10 +498,10 @@
       debrief: 'When two big tables are joined repeatedly on the same key, pre-partition them on that key at write time: bucketBy(n, "trip_id").sortBy("trip_id").saveAsTable(...) on both sides with the same bucket count. Spark then plans a SortMergeJoin with no Exchange, reading bucket i of each table together. The remaining shuffle is the final global sort, which benefits from tuned reducer counts, zstd compression and NVMe local disks. Iceberg\'s storage-partitioned joins offer the same result without a Hive metastore. Fat 64-core executors made it worse because all 64 tasks contended for one node\'s disks.',
     },
     {
-      id: 'schema', icon: '📋', n: 'The day the column became a string', co: 'Fernhill Logistics', cat: 'reliability', family: 'spark', lvl: 1,
+      id: 'schema', icon: '📋', n: 'The day the column became a string', co: 'Hyuga Logistics', cat: 'reliability', family: 'spark', lvl: 1,
       brief: 'JSON ingestion with inferSchema. One null and every downstream job broke.',
       story: [
-        'Fernhill Logistics ingests shipment events as JSON lines from 200 partner APIs into a Spark job that writes partitioned Parquet. The reader uses schema inference. Last Tuesday one partner sent a batch where weight_kg was null in every record; Spark inferred the column as string for that run, the Parquet output had a different type than the previous day, and the downstream aggregation failed with a schema-merge error at 05:00. Three teams were paged.',
+        'Hyuga Logistics ingests shipment events as JSON lines from 200 partner APIs into a Spark job that writes partitioned Parquet. The reader uses schema inference. Last Tuesday one partner sent a batch where weight_kg was null in every record; Spark inferred the column as string for that run, the Parquet output had a different type than the previous day, and the downstream aggregation failed with a schema-merge error at 05:00. Three teams were paged.',
         'Inference also means Spark reads all 400 GB of JSON twice each night, once to guess and once to load. The on-call engineer enabled spark.sql.files.ignoreCorruptFiles to get past a malformed file, which silently dropped 2% of a day\'s shipments; the finance team discovered this a week later. Someone proposed mergeSchema = true on every read "so it just works", and the ingestion owner wants a design that makes types deterministic and failures loud.',
       ],
       reqs: [
@@ -511,8 +511,8 @@
         'Transient cloud-storage errors must be retried, not fatal.',
         'Spark 3.5 on YARN; partners will keep sending JSON.',
       ],
-      quote: { who: 'Rosa Jiménez, Head of Integration', t: 'A pipeline that guesses is a pipeline that will guess wrong on the day it matters.' },
-      q: 'How should Fernhill configure the JSON reader and the job so types are stable and bad data is visible?',
+      quote: { who: 'Ino Yamanaka, Head of Integration', t: 'A pipeline that guesses is a pipeline that will guess wrong on the day it matters.' },
+      q: 'How should Hyuga configure the JSON reader and the job so types are stable and bad data is visible?',
       checks: [
         { t: 'Explicit schema on read, no inference', f: (r) => has(r, 'schema') && not(r, 'inferschema') },
         { t: 'No ignoreCorruptFiles', f: (r) => not(r, 'ignorecorrupt') },
@@ -524,10 +524,10 @@
       debrief: 'Schema inference on text formats is a full extra pass and a nondeterministic one: one all-null day is enough to change a type. An explicit schema fixes both; pair it with mode = PERMISSIVE and a _corrupt_record column (or badRecordsPath) so malformed lines are kept and reviewable instead of discarded. ignoreCorruptFiles is the opposite of what you want: it turns a loud failure into silently missing rows. mergeSchema would only have papered over the inconsistency. Retries and event logs handle the transient errors and make the next incident debuggable.',
     },
     {
-      id: 's3commit', icon: '🧾', n: 'Half a report', co: 'Quayside Analytics', cat: 'reliability', family: 'spark', lvl: 2,
+      id: 's3commit', icon: '🧾', n: 'Half a report', co: 'Uchiha Analytics', cat: 'reliability', family: 'spark', lvl: 2,
       brief: 'The job "succeeded", the output directory has half the files, and the commit took longer than the job.',
       story: [
-        'Quayside Analytics writes a 1 TB daily report to S3 as Parquet from Spark on YARN. The write stage finishes in 20 minutes; then the driver spends 25 minutes renaming 12,000 files from _temporary into place, one HTTP copy-and-delete at a time. Twice this month the driver was lost during that phase and downstream consumers read a directory with half the files and a _SUCCESS marker missing, which their tooling ignored.',
+        'Uchiha Analytics writes a 1 TB daily report to S3 as Parquet from Spark on YARN. The write stage finishes in 20 minutes; then the driver spends 25 minutes renaming 12,000 files from _temporary into place, one HTTP copy-and-delete at a time. Twice this month the driver was lost during that phase and downstream consumers read a directory with half the files and a _SUCCESS marker missing, which their tooling ignored.',
         'The team enabled spark.speculation to speed up stragglers, and once found two copies of the same partition file produced by a speculative duplicate. A proposal to write to HDFS and distcp to S3 was rejected as a second pipeline. Another proposal is to catch up by setting spark.task.maxFailures = 1 so the job fails fast when anything is wrong. The platform team has heard of "S3A committers" but is unsure whether they still matter now that S3 is strongly consistent.',
       ],
       reqs: [
@@ -537,7 +537,7 @@
         'Transient S3 errors must be retried.',
         'Spark 3.5 on YARN, plain Parquet output is acceptable.',
       ],
-      quote: { who: 'Amelia Stone, Data Reliability Lead', t: 'Strong consistency means S3 will not lie to us about the files that exist. It says nothing about the files that do not yet.' },
+      quote: { who: 'Android 17, Data Reliability Lead', t: 'Strong consistency means S3 will not lie to us about the files that exist. It says nothing about the files that do not yet.' },
       q: 'Which output-commit and resilience settings make the daily S3 write both fast and safe?',
       checks: [
         { t: 'A cloud-native committer or transactional table format', f: (r) => has(r, 's3committer', 'delta', 'iceberg', 'hudi') },
@@ -550,10 +550,10 @@
       debrief: 'The classic FileOutputCommitter was designed for HDFS, where rename is an atomic metadata operation. On S3 a rename is a copy plus a delete, done by the driver, serially, for every file: slow and non-atomic. The S3A magic committer (or EMR\'s S3-optimised committer) writes files as multipart uploads that are only completed at job commit, so partial results are never visible and duplicates from speculation are discarded. Strong consistency fixed listing-after-write, not the rename problem. A table format solves it at a higher level with a transaction log; either way, maxFailures = 1 would have made things worse.',
     },
     {
-      id: 'locality', icon: '🛰️', n: 'Three seconds of nothing', co: 'Harbor Freight Data', cat: 'perf', family: 'spark', lvl: 1,
+      id: 'locality', icon: '🛰️', n: 'Three seconds of nothing', co: 'Frieza Force Freight', cat: 'perf', family: 'spark', lvl: 1,
       brief: 'After moving from HDFS to object storage, every stage starts with a mysterious pause.',
       story: [
-        'Harbor Freight Data migrated its 300 TB lake from an on-premises HDFS cluster to cloud object storage, keeping the same Spark jobs and YARN configuration. The jobs are correct but about 25% slower, and the Spark UI shows a strange pattern: at the start of each stage, executors sit idle for about three seconds before tasks begin, and the Scheduler Delay metric is elevated across the board. Nobody changed the code.',
+        'Frieza Force Freight migrated its 300 TB lake from an on-premises HDFS cluster to cloud object storage, keeping the same Spark jobs and YARN configuration. The jobs are correct but about 25% slower, and the Spark UI shows a strange pattern: at the start of each stage, executors sit idle for about three seconds before tasks begin, and the Scheduler Delay metric is elevated across the board. Nobody changed the code.',
         'A junior engineer suspects the network and proposes bigger executors; a senior engineer notices spark.locality.wait is still at its default of 3 seconds and that every task now reports locality level ANY, because there are no HDFS block replicas to be local to. The job also re-lists the same prefixes several times per run because each report calls spark.read on the same path. A consultant recommends moving the data back to HDFS on cloud VMs.',
       ],
       reqs: [
@@ -563,7 +563,7 @@
         'Scan tasks should be sized for many medium files.',
         'Spark 3.5 on YARN.',
       ],
-      quote: { who: 'Theo Lindqvist, Platform Architect', t: 'Spark is politely waiting for a data-local slot that cannot exist. Tell it to stop waiting.' },
+      quote: { who: 'Vegeta, Platform Architect', t: 'Spark is politely waiting for a data-local slot that cannot exist. Tell it to stop waiting.' },
       q: 'Which scheduler and read-path settings recover the lost 25% after the move to object storage?',
       checks: [
         { t: 'spark.locality.wait set to 0 for object storage', f: (r) => has(r, 'localitywait') },
@@ -575,10 +575,10 @@
       debrief: 'Delay scheduling waits spark.locality.wait (3 s per level) for a slot where the data is local before falling back. On HDFS that wait buys node-local reads; on S3 or GCS there is no local replica, so it buys exactly nothing, once per task batch per stage. Setting it to 0 removes the pause. Object stores also charge latency per LIST, so reuse one DataFrame per path within a job, and raise maxPartitionBytes so each scan task reads more bytes relative to its fixed overhead. Moving back to HDFS would have solved the symptom at ten times the cost.',
     },
     {
-      id: 'fair', icon: '⚖️', n: 'One notebook to starve them all', co: 'Nimbus University', cat: 'reliability', family: 'spark', lvl: 2,
+      id: 'fair', icon: '⚖️', n: 'One notebook to starve them all', co: 'Konoha Ninja Academy', cat: 'reliability', family: 'spark', lvl: 2,
       brief: 'A shared teaching cluster; one student\'s cross join and everyone\'s lab is late.',
       story: [
-        'Nimbus University runs a shared Spark cluster for a data-engineering course with 300 students. Each student connects from a notebook. Several times per lab session, one student\'s runaway query (a cross join, a collect() on a large table) consumes all cores for twenty minutes or crashes the shared driver, and 299 others wait. Teaching assistants currently fix this by restarting the cluster, which also kills the well-behaved sessions.',
+        'Konoha Ninja Academy runs a shared Spark cluster for a data-engineering course with 300 students. Each student connects from a notebook. Several times per lab session, one student\'s runaway query (a cross join, a collect() on a large table) consumes all cores for twenty minutes or crashes the shared driver, and 299 others wait. Teaching assistants currently fix this by restarting the cluster, which also kills the well-behaved sessions.',
         'The current setup runs one large SparkSession in a single JVM that every notebook attaches to, with FIFO scheduling and a fixed executor count that sits idle between labs. The IT department has proposed one cluster per student, which the budget cannot support, and a hard CPU-time limit per query, which Spark does not natively provide. The course lead wants fair sharing, isolation of driver failures, and a cluster that costs nothing between sessions.',
       ],
       reqs: [
@@ -588,7 +588,7 @@
         'Executors must scale to zero between labs.',
         'Spark 3.5 on Kubernetes.',
       ],
-      quote: { who: 'Prof. Ingrid Haugen, Course Lead', t: 'I want three hundred students to make mistakes in parallel without making them for each other.' },
+      quote: { who: 'Prof. Iruka Umino, Course Lead', t: 'I want three hundred students to make mistakes in parallel without making them for each other.' },
       q: 'How should the teaching cluster be structured to give fair sharing, isolation and elasticity?',
       checks: [
         { t: 'FAIR scheduler pools', f: (r) => has(r, 'fair') },
@@ -601,10 +601,10 @@
       debrief: 'FAIR scheduling with per-user pools gives every notebook a share of the cores, so a cross join slows its owner, not the class. Spark Connect separates the notebook (a thin gRPC client) from the server-side session: a bad collect() can take down one session without touching the others, and maxResultSize makes it fail in seconds. Dynamic allocation on Kubernetes with shuffle tracking (there is no external shuffle service) lets the executor count fall to the minimum between labs. One cluster per student would have been isolation by brute force at 300 times the cost.',
     },
     {
-      id: 'mlfeatures', icon: '🧪', n: 'Scoring 300 million riders before breakfast', co: 'Velora Rides', cat: 'python', family: 'spark', lvl: 3,
+      id: 'mlfeatures', icon: '🧪', n: 'Scoring 300 million riders before breakfast', co: 'Shunshin Rides', cat: 'python', family: 'spark', lvl: 3,
       brief: 'A churn model must score every rider nightly. The scoring stage needs big memory; the rest does not.',
       story: [
-        'Velora Rides scores 300 million riders every night with a churn model. The pipeline has two very different halves: a SQL-heavy feature build over 1 TB (joins and window functions), and a Python scoring stage that loads a 2 GB model into each task and runs it on batches. Today the whole job runs on 4-core / 16 GB executors. The scoring stage either runs out of memory loading the model or, when executors are made larger for everyone, the feature stage wastes most of the cluster\'s RAM.',
+        'Shunshin Rides scores 300 million riders every night with a churn model. The pipeline has two very different halves: a SQL-heavy feature build over 1 TB (joins and window functions), and a Python scoring stage that loads a 2 GB model into each task and runs it on batches. Today the whole job runs on 4-core / 16 GB executors. The scoring stage either runs out of memory loading the model or, when executors are made larger for everyone, the feature stage wastes most of the cluster\'s RAM.',
         'The scoring is implemented with a row-at-a-time Python UDF and the model is loaded inside the function, so it is re-read from storage for every batch of rows. Executors are occasionally killed by Kubernetes for exceeding their memory limit, because the Python workers are not accounted for in the executor heap. The ML team wants to keep scikit-learn and pandas; the platform team wants one job, not two, and a cluster that scales down when scoring finishes.',
       ],
       reqs: [
@@ -614,7 +614,7 @@
         'The job must scale executors with each stage and release them afterwards.',
         'Spark 3.5 on Kubernetes; Python remains the modelling language.',
       ],
-      quote: { who: 'Jonas Weber, Head of ML Platform', t: 'Half the job needs CPUs, the other half needs memory. Give each half what it needs instead of the maximum of both to everyone.' },
+      quote: { who: 'Gohan, Head of ML Platform', t: 'Half the job needs CPUs, the other half needs memory. Give each half what it needs instead of the maximum of both to everyone.' },
       q: 'How should the pipeline be written and scheduled so each stage gets the right executor shape and Python scoring is efficient?',
       checks: [
         { t: 'Scoring uses mapInPandas (whole-partition pandas scoring)', f: (r) => has(r, 'mapinpandas') },
@@ -628,10 +628,10 @@
       debrief: 'mapInPandas hands each task a stream of pandas DataFrames, so the model is loaded once per task and applied to whole batches, which is the efficient way to run a scikit-learn model in Spark. Stage-level scheduling (ResourceProfile) lets that stage request 8-core / 64 GB executors while the SQL feature stage keeps small ones, in the same job; it needs dynamic allocation to acquire the new shape and release it afterwards. spark.executor.memoryOverhead or pyspark.memory accounts for the Python workers so Kubernetes stops killing pods. Vectorised Python plus Arrow is what makes Python a first-class citizen here.',
     },
     {
-      id: 'gdpr', icon: '🧬', n: 'Delete me, by Friday', co: 'Solstice Health', cat: 'storage', family: 'spark', lvl: 2,
+      id: 'gdpr', icon: '🧬', n: 'Delete me, by Friday', co: 'Chakra Health', cat: 'storage', family: 'spark', lvl: 2,
       brief: 'Erasure requests by patient_id against 4 TB of Parquet. Each one rewrites the whole table.',
       story: [
-        'Solstice Health keeps 4 TB of appointment records as Parquet partitioned by date, three years of history. Privacy regulations give the company 30 days to erase a patient on request, and requests now arrive daily. Because Parquet files are immutable and there is no index on patient_id, each erasure reads every file, filters out the patient, and rewrites the table: a three-hour job per request, and a correctness risk if two run at once.',
+        'Chakra Health keeps 4 TB of appointment records as Parquet partitioned by date, three years of history. Privacy regulations give the company 30 days to erase a patient on request, and requests now arrive daily. Because Parquet files are immutable and there is no index on patient_id, each erasure reads every file, filters out the patient, and rewrites the table: a three-hour job per request, and a correctness risk if two run at once.',
         'Late-arriving corrections from clinics also require updating existing rows, which the team currently handles by rewriting whole date partitions. Auditors have asked to see the table "as it was" on a given date, which nobody can produce. An engineer proposed partitionBy(patient_id) so deletes touch one directory; another proposed a nightly job that marks rows as deleted in a side table and filters them at read time forever. Leadership wants deletes in minutes, concurrent-safe, with history.',
       ],
       reqs: [
@@ -641,7 +641,7 @@
         'Small files from frequent updates must be kept under control automatically.',
         'Spark 3.5 on Kubernetes, open-source formats preferred.',
       ],
-      quote: { who: 'Dr. Naomi Adler, Chief Privacy Officer', t: 'A deletion that takes three hours and a rewrite of four terabytes is not a deletion. It is an incident waiting for a second request.' },
+      quote: { who: 'Dr. Kabuto Yakushi, Chief Privacy Officer', t: 'A deletion that takes three hours and a rewrite of four terabytes is not a deletion. It is an incident waiting for a second request.' },
       q: 'Which table format and layout make row-level deletes and updates fast, safe and auditable?',
       checks: [
         { t: 'A transactional table format (Delta, Iceberg or Hudi)', f: (r) => has(r, 'delta', 'iceberg', 'hudi') },
@@ -654,10 +654,10 @@
       debrief: 'A table format adds a transaction log over Parquet: DELETE and MERGE rewrite only the files that contain matching rows, commits are atomic and isolated, and every version is retained for time travel. Per-file statistics plus Z-ORDER (or liquid clustering) on patient_id mean an erasure touches a handful of files out of thousands. Optimized writes and scheduled OPTIMIZE keep the small files created by frequent updates in check. partitionBy(patient_id) would create millions of directories, and a soft-delete side table does not satisfy erasure. Delta, Iceberg and Hudi all fit; the layout choices are what make it fast.',
     },
     {
-      id: 'photon', icon: '⚡', n: 'Photon on a budget', co: 'Juniper Commerce', cat: 'cost', family: 'spark', lvl: 2,
+      id: 'photon', icon: '⚡', n: 'Photon on a budget', co: 'Orange Star Commerce', cat: 'cost', family: 'spark', lvl: 2,
       brief: 'Migrating to Databricks. Which of the open-source habits should come along, and which should not?',
       story: [
-        'Juniper Commerce is moving its 60 nightly Spark jobs from a self-managed YARN cluster to Databricks. The team\'s existing configurations are tuned for open-source Spark: explicit partitionBy(dt) on every table, nightly OPTIMIZE ZORDER jobs, hand-set executor counts, an external shuffle service, and a Gluten plugin they trialled last year. The migration lead wants to know which habits translate and which fight the platform.',
+        'Orange Star Commerce is moving its 60 nightly Spark jobs from a self-managed YARN cluster to Databricks. The team\'s existing configurations are tuned for open-source Spark: explicit partitionBy(dt) on every table, nightly OPTIMIZE ZORDER jobs, hand-set executor counts, an external shuffle service, and a Gluten plugin they trialled last year. The migration lead wants to know which habits translate and which fight the platform.',
         'A proof of concept with Photon on serverless compute ran the largest job 2.4× faster at 1.3× the per-unit price, a net saving. But a second attempt that copied the old spark-defaults verbatim was slower and threw errors: the Gluten plugin conflicted with Photon, the shuffle-service setting was ignored, fixed executor counts disabled autoscaling, and a table created with both partitionBy and liquid clustering was rejected. The finance team is watching the DBU bill closely.',
       ],
       reqs: [
@@ -667,7 +667,7 @@
         'No open-source native engine plugins alongside the proprietary one.',
         'Everything placed must be available on a single platform.',
       ],
-      quote: { who: 'Lucía Fernández, Migration Lead', t: 'We are not porting a cluster. We are porting the intent. The platform already has opinions about the rest.' },
+      quote: { who: 'Trunks Briefs, Migration Lead', t: 'We are not porting a cluster. We are porting the intent. The platform already has opinions about the rest.' },
       q: 'Which combination of engine, compute and layout fits Databricks without dragging along settings that conflict with it?',
       checks: [
         { t: 'Photon is the execution engine', f: (r) => !!r.engine && r.engine.id === 'photon' },
@@ -686,7 +686,7 @@
     maya: ['Spark 3.5 on YARN, 40 executors × 4 cores.', 'trips: 2 TB Parquet, 16,000 files, partitionBy(dt), one year.', 'dim_zones: 50 MB Parquet in its own directory.', 'Report runs nightly at 06:00; SLA 07:00.'],
     straggler: ['Spark 3.5 on YARN; 50 executors × 4 cores, 20 GB each.', 'scan_events: 3 TB Parquet, partitioned by dt.', 'depot_promotions: 800 MB Parquet, 1,200 depots.', 'Default 200 shuffle partitions; AQE left at defaults.'],
     friday: ['Spark 3.5 on YARN; driver 4 GB (raised to 16 GB last month).', 'authorisations: 1.5 TB Parquet, partitioned by dt.', 'fee_schedule: 300 MB Mon–Thu, 1.3 GB on Fridays.', 'spark.sql.autoBroadcastJoinThreshold = 2g set globally.'],
-    smallfiles: ['Spark 3.5 on YARN; 25 executors × 4 cores.', 's3://helio/telemetry/: 2,000,000 Parquet files, ~400 KB each.', 'Ingestion service writes one file per device per hour.', 'Roughly 0.5% of files are truncated by a known upload bug.'],
+    smallfiles: ['Spark 3.5 on YARN; 25 executors × 4 cores.', 's3://hiddenleaf/telemetry/: 2,000,000 Parquet files, ~400 KB each.', 'Ingestion service writes one file per device per hour.', 'Roughly 0.5% of files are truncated by a known upload bug.'],
     udf: ['Spark 3.5 on Kubernetes; executors 4 cores / 16 GB, no memoryOverhead set.', 'features: 1 TB Parquet, 60 columns, 90 days.', 'Model: scikit-learn pickle, 40 MB.', 'Notebook ends with toPandas() of the full scored output (20 GB).'],
     spot: ['Spark 3.5 on Kubernetes; 100% spot node pool for executors and driver.', 'impressions: 2 TB Parquet per night, partitioned by dt.', 'No external or remote shuffle service.', 'spark.task.maxFailures = 1 (set during an earlier incident).'],
     k8sbill: ['Spark 3.5 on Kubernetes; dynamicAllocation.enabled = true, maxExecutors = 200.', 'shuffleTracking enabled with the default timeout.', 'No remote shuffle service.', 'Spark UI disappears when the driver pod exits; no History Server.'],
@@ -713,29 +713,29 @@
 
   // Third narrative paragraph: what has been tried, politics, and extra distractors.
   const MORE = {
-    maya: 'Ravi, the staff engineer, has asked Maya to fix FIN-2231 before Friday and to write up what she learns for the team wiki. Finance has escalated once already and will escalate again if the 07:00 SLA is missed a third time. Maya has access to the job code, the cluster configuration and the Spark UI for every run of the last month, and she is allowed to change any of them, but she has no budget for more nodes.',
-    straggler: 'Kestrel\'s on-call engineers have been paged at 04:00 three times this month. The reporting SLA is 06:00, and the finance team now starts its day by asking whether "the depot job" finished. A rewrite of the join with manual key salting is on the backlog, but the team wants a configuration-level fix first, both because it ships faster and because the next hot key will not announce itself.',
+    maya: 'Kakashi, the staff engineer, has asked Sakura to fix FIN-2231 before Friday and to write up what she learns for the team wiki. Finance has escalated once already and will escalate again if the 07:00 SLA is missed a third time. Sakura has access to the job code, the cluster configuration and the Spark UI for every run of the last month, and she is allowed to change any of them, but she has no budget for more nodes.',
+    straggler: 'Akatsuki\'s on-call engineers have been paged at 04:00 three times this month. The reporting SLA is 06:00, and the finance team now starts its day by asking whether "the depot job" finished. A rewrite of the join with manual key salting is on the backlog, but the team wants a configuration-level fix first, both because it ships faster and because the next hot key will not announce itself.',
     friday: 'The settlement job gates merchant payouts: a Friday failure delays money to 9,000 businesses until Monday, and the support queue fills up. The consultant who set the threshold has left. The team wants the job to behave identically every day, a predictable driver size, and a clear rule for which tables get broadcast and which do not.',
-    smallfiles: 'The rollup feeds a warranty-claims model and an executive dashboard, both of which are now stale by the time they refresh. Helio\'s storage bill is also climbing because of per-request costs on millions of LIST and GET calls. The data engineering team is two people, so the solution must be something a scheduled job can maintain, not a manual cleanup every quarter.',
+    smallfiles: 'The rollup feeds a warranty-claims model and an executive dashboard, both of which are now stale by the time they refresh. Hidden Leaf\'s storage bill is also climbing because of per-request costs on millions of LIST and GET calls. The data engineering team is two people, so the solution must be something a scheduled job can maintain, not a manual cleanup every quarter.',
     udf: 'The pipeline feeds a nightly model refresh that clinical operations depend on, and it has failed its window every night this week. A separate proposal to buy GPU nodes was paused until someone can show that the existing cluster is being used sensibly. The data scientist is open to changing how the Python logic is expressed, as long as it stays Python.',
     spot: 'The nightly job feeds advertiser billing: when it runs late, invoices go out late and the finance team hears about it. The platform team has already validated Apache Celeborn in staging and can run it on a small on-demand node pool. Finance will accept paying on-demand prices for a handful of service nodes if the executors stay on spot.',
     k8sbill: 'A cost review is scheduled for the end of the quarter and the platform team must present a before/after. The analytics workloads are shuffle-heavy ETL with long tails: a few single-task stages per job, which is exactly where the idle executors pile up. Any solution must be transparent to the analytics team\'s existing job code.',
     files200: 'The BI team has asked for the fix to be in place before the quarterly business review, when 300 dashboards are opened within the same ten minutes. The platform team also wants to compact the existing 73,000 files, but that is a one-off; the daily job must stop producing new fragments first.',
-    csvgz: 'Downstream teams have asked for the Parquet output to be available by 02:30, which the current single-task job cannot meet. The vendor relationship is good and the export specification is up for renewal next month, so changes on their side are realistic. Meridian\'s platform team is willing to add a landing-zone conversion step as long as it is Spark, not shell scripts.',
+    csvgz: 'Downstream teams have asked for the Parquet output to be available by 02:30, which the current single-task job cannot meet. The vendor relationship is good and the export specification is up for renewal next month, so changes on their side are realistic. West City Telecom\'s platform team is willing to add a landing-zone conversion step as long as it is Spark, not shell scripts.',
     bi: 'The analytics budget has been frozen for the year, which rules out a new warehouse, and the platform team has one person for Spark. The BI vendor\'s integration uses standard JDBC, so the endpoint can be a Thrift server or a Spark Connect server as long as the SQL works. Whatever is proposed must be demonstrable at the next 09:00 peak.',
-    state: 'The streaming job is PulsePay\'s only fraud defence between the authorisation and the settlement, so every restart is a window of risk. The team has a two-week change freeze starting after the next release and wants the fix shipped before it. The data engineers know Spark well but have never changed a state store provider in production.',
-    exactly: 'An external audit begins in six weeks, and Ledgerly must present the write path and demonstrate idempotency under a forced restart. The engineering team is comfortable adopting a table format but has ruled out adding a separate message-queue product or a key-value store for deduplication. Whatever is proposed must also cover the hourly batch job, not just the stream.',
+    state: 'The streaming job is Byakugan Pay\'s only fraud defence between the authorisation and the settlement, so every restart is a window of risk. The team has a two-week change freeze starting after the next release and wants the fix shipped before it. The data engineers know Spark well but have never changed a state store provider in production.',
+    exactly: 'An external audit begins in six weeks, and Sharingan Ledger must present the write path and demonstrate idempotency under a forced restart. The engineering team is comfortable adopting a table format but has ruled out adding a separate message-queue product or a key-value store for deduplication. Whatever is proposed must also cover the hourly batch job, not just the stream.',
     oom: 'The research platform is a shared cost centre and a second environment is not in the budget. The platform team can change the notebook template, the Spark configuration and how notebooks connect to Spark, but cannot review every analyst\'s code. Leadership has asked for a design that assumes mistakes will keep happening and limits their blast radius.',
     cache: 'The claims-enrichment output feeds the morning adjuster queue, and three late runs this month have delayed claim decisions. The developer who added the persist is keen to learn what went wrong rather than just revert it. The team wants a short written rule for when caching is appropriate, and a configuration that makes the single-pass job as fast as it can be.',
     gpu: 'The GPU nodes were bought on a one-year commitment, so the pilot must show value this quarter or the finance team will reassign them. The two UDFs are small and the bioinformatics team is happy to rewrite them with built-in functions if that is what it takes. The platform team runs Kubernetes and has already piloted a remote shuffle service for other workloads.',
     native: 'The merger closes next quarter, after which the report will cover twice the transaction volume. Internal audit must approve any new component, which rules out closed-source engines but not Apache projects. The data engineering team has already rewritten the masking UDF as a SQL expression in a branch, pending a decision on the engine.',
     starschema: 'The finance analytics team is preparing for the first quarter close under a new fiscal calendar, and every report will be re-run several times during the close. A data warehouse migration has been discussed but is at least a year away. The platform team can add a metastore, schedule statistics collection and change planner settings, but the analysts\' SQL should stay as it is.',
     bucket: 'The reconciliation output is a regulatory deliverable with a 06:00 deadline, and the job has missed it four times this month. Rewriting the two source tables once is acceptable because seven downstream jobs would benefit. The principal engineer wants a design document explaining why the shuffle disappears, not just a configuration change.',
-    schema: 'Fernhill\'s partner API contracts already specify field types, so an explicit schema can be generated from the contract rather than maintained by hand. The 05:00 incident cost a day of delivery reporting and the head of integration wants a solution within the sprint. A data-quality dashboard for rejected records is a welcome side effect, not a requirement.',
+    schema: 'Hyuga\'s partner API contracts already specify field types, so an explicit schema can be generated from the contract rather than maintained by hand. The 05:00 incident cost a day of delivery reporting and the head of integration wants a solution within the sprint. A data-quality dashboard for rejected records is a welcome side effect, not a requirement.',
     s3commit: 'The daily report is consumed by a pricing engine that cannot tolerate partial inputs; an incomplete directory last month produced wrong prices for four hours. Moving to a table format is on the roadmap for next year but the team wants the plain-Parquet pipeline made safe now. The platform team controls the Hadoop and Spark configuration and can add the cloud committer libraries.',
     locality: 'The migration was sold to leadership on cost, and the 25% slowdown has become an argument for the sceptics. The platform architect wants a short list of settings that are specific to object storage and a rationale for each, so the team stops copying HDFS-era defaults into new clusters. Data layout changes are out of scope for this ticket.',
     fair: 'The course doubles in size next semester, and the current failure mode already costs about one lab session in ten. Students use PySpark DataFrames only, never RDDs, so a thin-client architecture is viable. The university\'s cloud credits are capped, which makes scale-to-zero between labs a real requirement rather than a nicety.',
-    mlfeatures: 'The churn scores feed a retention campaign that goes out at 08:00; the job currently finishes at 09:30 on a good night. Velora runs Kubernetes with autoscaling node pools, including a high-memory pool that is mostly idle. The ML team has agreed to restructure how the model is applied, provided the scoring code remains pandas and scikit-learn.',
+    mlfeatures: 'The churn scores feed a retention campaign that goes out at 08:00; the job currently finishes at 09:30 on a good night. Shunshin Rides runs Kubernetes with autoscaling node pools, including a high-memory pool that is mostly idle. The ML team has agreed to restructure how the model is applied, provided the scoring code remains pandas and scikit-learn.',
     gdpr: 'The privacy office has started receiving several erasure requests per day and expects that to grow. The legal team has also asked that corrections be traceable to a version of the table. The data platform team is small and prefers a format with broad engine support so analysts can keep using their existing tools.',
     photon: 'The migration has a hard cutover date aligned with the end of the YARN cluster lease. The team wants a reference configuration for the first ten jobs that demonstrates the platform\'s strengths and avoids the errors from the second attempt. Finance will compare the DBU bill against the old cluster cost at the end of the first month.',
   };

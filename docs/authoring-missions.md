@@ -11,14 +11,14 @@ All missions live in [`src/data/missions.js`](../src/data/missions.js).
   id: 'straggler',                 // unique, lower-case, stable (used in localStorage)
   icon: '🐢',                      // one emoji, shown on the board and the mission card
   n: 'One task, three hours',      // title
-  co: 'Kestrel Logistics',         // fictional company
+  co: 'Akatsuki Logistics',         // fictional company
   cat: 'shuffle',                  // perf | shuffle | memory | storage | cost | python | streaming | reliability
   family: 'spark',                 // 'spark' or 'any'
   lvl: 1,                          // 1 Associate, 2 Professional, 3 Expert
   brief: '199 reducers finish in a minute. One runs for three hours.',   // one-liner for the board
   story: [ '…company overview…', '…the incident…' ],                     // paragraphs
   reqs: [ '…', '…' ],              // business + technical requirements, including red herrings
-  quote: { who: 'Priya Nair, Head of Data Platform', t: '…' },
+  quote: { who: 'Tsunade Senju, Head of Data Platform', t: '…' },
   q: 'Which configuration change…?',                                     // the hidden question
   checks: [                        // hidden goals, each { t, f(result) }
     has2('aqe', 'aqeskew'),
@@ -80,7 +80,7 @@ Prefer plan goals over score goals whenever the story is about behaviour ("the j
 - [ ] Every check should be **necessary**: the reference answer passes it, and a plausible wrong answer fails it.
 - [ ] Mention real Spark UI evidence: empty `PartitionFilters`, `SortMergeJoin` with two `Exchange`s, spill sizes, GC time, `AQEShuffleRead`.
 - [ ] The **debrief** explains *why*, including why each trap is wrong.
-- [ ] Use **fictional** companies and people.
+- [ ] Use **fictional** companies and people — by convention, names from the **Naruto** or **Dragon Ball Z** universes (e.g. `Capsule Corp`, `Hyuga Logistics`, `Kakashi Hatake`). Never a real company, person or product.
 
 ## Verify
 
